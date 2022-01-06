@@ -18,7 +18,7 @@ contract Adoption {
 	}
 	
 	// Return Pet
-	function return_pet(uint petId) public returns (address) {
+	function return_pet(uint petId) public returns (string memory) {
 		require(petId >= 0 && petId <= 15);
 		
 		// Address must own the pet
