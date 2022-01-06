@@ -1,0 +1,10 @@
+Compiling your contracts...
+===========================
+> Compiling ./contracts/Adoption.sol
+
+project:/contracts/Adoption.sol:27:21: TypeError: Type int_const 0 is not implicitly convertible to expected type address.
+		adopters[petId] = 0;
+		                  ^
+,project:/contracts/Adoption.sol:29:10: TypeError: Return argument type address is not implicitly convertible to expected type (type of first return variable) string memory.
+		return adopters[petId];
+		       ^-------------^
