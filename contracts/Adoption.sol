@@ -18,13 +18,14 @@ contract Adoption {
 	}
 	
 	// Return Pet
-	function return_pet(uint petId) public returns (string memory) {
+	function returnPet(uint petId) public returns (address) {
 		require(petId >= 0 && petId <= 15);
 		
 		// Address must own the pet
 		require(msg.sender == adopters[petId]);
 		
-		adopters[petId] = 0;
+		// Clear the adopter for this pet
+		adopters[petId] = address(0);
 		
 		return adopters[petId];
 	}

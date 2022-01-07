@@ -15,6 +15,7 @@ App = {
         petTemplate.find('.pet-age').text(data[i].age);
         petTemplate.find('.pet-location').text(data[i].location);
         petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
+        petTemplate.find('.btn-return').attr('data-id', data[i].id);
 
         petsRow.append(petTemplate.html());
       }
@@ -75,6 +76,7 @@ App = {
 
   bindEvents: function() {
     $(document).on('click', '.btn-adopt', App.handleAdopt);
+    $(document).on('click', '.btn-return', App.handleReturn);
   },
 
   markAdopted: function() {
@@ -86,15 +88,65 @@ App = {
 
       return adoptionInstance.getAdopters.call();
     }).then(function(adopters) {
-      for (i = 0; i < adopters.length; i++) {
-        if (adopters[i] != '0x0000000000000000000000000000000000000000') {
-          $('.panel-pet').eq(i).find('button').text('Success').attr('disabled', true);
-        }
-      }
+		
+		var account;
+		web3.eth.getAccounts(function(error, accounts) {
+			if (error) {
+				console.log(error);
+			}
+			var account = accounts[0];
+			  for (i = 0; i < adopters.length; i++) {
+				if (adopters[i] != '0x0000000000000000000000000000000000000000') {
+					if (adopters[i] == account){
+						$('.panel-pet').eq(i).find('.btn-return').text('Return').attr('disabled', false);
+						$('.panel-pet').eq(i).find('.btn-adopt').text('Adopted').attr('disabled', true);
+					} else {
+						$('.panel-pet').eq(i).find('.btn-return').text('-').attr('disabled', true);
+						$('.panel-pet').eq(i).find('.btn-adopt').text('Adopted').attr('disabled', true);
+					}
+				} else {
+					$('.panel-pet').eq(i).find('.btn-return').text('-').attr('disabled', true);
+				}
+			  }
+			  
+		});
     }).catch(function(err) {
       console.log(err.message);
     });
   },
+
+  handleReturn: function(event) {
+    event.preventDefault();
+	
+	var petId = parseInt($(event.target).data('id'));
+	
+	console.log("petID:"+petId);
+		
+	var adoptionInstance;
+		
+	web3.eth.getAccounts(function(error, accounts) {
+		if (error) {
+			console.log(error);
+		}
+
+		var account = accounts[0];
+		console.log("account:"+account);
+
+		App.contracts.Adoption.deployed().then(function(instance) {
+			adoptionInstance = instance;
+
+			// Execute adopt as a transaction by sending account
+			return adoptionInstance.returnPet(petId, {from: account});
+			}).then(function(result) {
+				return App.markAdopted();
+			}).catch(function(err) {
+				console.log(err.message);
+		});
+
+	});
+	
+  },
+
 
   handleAdopt: function(event) {
     event.preventDefault();

@@ -11,6 +11,9 @@ contract TestAdoption {
 	// The id of the pet that will be used for testing
 	uint expectedPetId = 8;
 
+	// The expected owner of the adopted pet in this contract
+	address expectedAdopter = address(this);
+
 	// Testing the adopt() function
 	function testUserCanAdoptPet() public {
 		uint returnedId = adoption.adopt(expectedPetId);
@@ -32,8 +35,15 @@ contract TestAdoption {
 
 		Assert.equal(adopters[expectedPetId], expectedAdopter, "Owner of the expected pet should be this contract");
 	}
+	
+	// Testing returning a pet
+	function testReturnPet() public {
+		// Delete adopter's entry in in the array
+		address owner = adoption.returnPet(expectedPetId);
+		
+		Assert.equal(owner, address(0), "address should be 0x0");
+	}
 
-	// The expected owner of the adopted pet is this contract
-	address expectedAdopter = address(this);
+	
 
 }
