@@ -18,7 +18,7 @@ contract Adoption {
 	}
 	
 	// Return Pet
-	function returnPet(uint petId) public returns (address) {
+	function returnPet(uint petId) public returns (uint) {
 		require(petId >= 0 && petId <= 15);
 		
 		// Address must own the pet
@@ -27,7 +27,7 @@ contract Adoption {
 		// Clear the adopter for this pet
 		adopters[petId] = address(0);
 		
-		return adopters[petId];
+		return petId;
 	}
 
 }

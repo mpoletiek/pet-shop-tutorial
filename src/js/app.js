@@ -2,7 +2,6 @@ App = {
   web3Provider: null,
   accounts: [],
   contracts: {},
-  adoptionInstance: null,
 
   init: async function() {
     // Load pets.
@@ -55,7 +54,7 @@ App = {
       App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
     }
     
-    web3 = new Web3(App.web3Provider);
+    //web3 = new Web3(App.web3Provider);
 
     return App.initContract();
     
@@ -88,12 +87,11 @@ App = {
 
   markAdopted: function() {
 
-    var adoptionInstance;
-
+	var adoptionInstance;
     App.contracts.Adoption.deployed().then(function(instance) {
-      App.adoptionInstance = instance;
+      adoptionInstance = instance;
 
-      return App.adoptionInstance.getAdopters.call();
+      return adoptionInstance.getAdopters.call();
     }).then(function(adopters) {
 		
 		for(i=0;i<adopters.length;i++){
@@ -109,8 +107,7 @@ App = {
 				$('.panel-pet').eq(i).find('.btn-return').text('-').attr('disabled', true);
 			}
 		}
-		
-		
+
 		
     }).catch(function(err) {
       console.log(err.message);
@@ -122,17 +119,18 @@ App = {
 	
 	var petId = parseInt($(event.target).data('id'));
 	
+	console.log("handleReturn petId: "+petId+" Account[0]: "+App.accounts[0]);
 	console.log("petID:"+petId);
-		
-	App.contracts.Adoption.deployed().then(function(instance) {
+	console.log("Account[0]: "+App.accounts[0]);
+	
+	var adoptionInstance;
+    App.contracts.Adoption.deployed().then(function(instance) {
+      adoptionInstance = instance;
 
-        // Execute adopt as a transaction by sending account
-        return App.adoptionInstance.returnPet(petId, {from: App.accounts[0]});
-      }).then(function(result) {
-        return App.markAdopted();
-      }).catch(function(err) {
-        console.log(err.message);
-	  });
+      return adoptionInstance.returnPet(petId, {from: App.accounts[0]});
+    }).then(function(result){
+		App.markAdopted();
+	});
 	
   },
 
@@ -141,16 +139,16 @@ App = {
     event.preventDefault();
 
     var petId = parseInt($(event.target).data('id'));
+    console.log("handleAdopt petId: "+petId+" Account[0]: "+App.accounts[0]);
     console.log("petId:"+petId);
 
+	var adoptionInstance;
     App.contracts.Adoption.deployed().then(function(instance) {
+      adoptionInstance = instance;
 
-        // Execute adopt as a transaction by sending account
-        return App.adoptionInstance.adopt(petId, {from: account[0]});
-		}).then(function(result) {
-			return App.markAdopted();
-		}).catch(function(err) {
-			console.log(err.message);
+      return adoptionInstance.adopt(petId, {from: App.accounts[0]});
+    }).then(function(result){
+		App.markAdopted();
 	});
     
   }

@@ -39,9 +39,9 @@ contract TestAdoption {
 	// Testing returning a pet
 	function testReturnPet() public {
 		// Delete adopter's entry in in the array
-		address owner = adoption.returnPet(expectedPetId);
+		uint petId = adoption.returnPet(expectedPetId);
 		
-		Assert.equal(owner, address(0), "address should be 0x0");
+		Assert.equal(petId, expectedPetId, "expected Pet Id is 8");
 	}
 
 	
