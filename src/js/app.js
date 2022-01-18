@@ -1,6 +1,8 @@
 App = {
   web3Provider: null,
+  accounts: [],
   contracts: {},
+  adoptionInstance: null,
 
   init: async function() {
     // Load pets.
@@ -28,26 +30,31 @@ App = {
 
     // Modern dapp browsers...
     if (window.ethereum){
-      web3 = new Web3(web3.currentProvider);
       try {
         //Request account access
-        await window.ethereum.request({ method: "eth_requestAccounts" });
+        App.accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
       } catch (error) {
         // User denied account access...
         console.error("User denied account access");
       }
-      App.web3Provider = web3.currentProvider;
+      
+      // User granted access to accounts
+      console.log("Account[0]: "+App.accounts[0]);
+      
+      App.web3Provider = window.ethereum;
       console.log("modern dapp browser");
     }
     // Legacy dapp browsers...
     else if (window.web3) {
       App.web3Provider = window.web3.currentProvider;
+      App.accounts = window.eth.accounts;
       console.log("legacy dapp browser");
     }
     // if no injected web3 instance is detected, fall back to Ganache
     else {
       App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
     }
+    
     web3 = new Web3(App.web3Provider);
 
     return App.initContract();
@@ -84,32 +91,27 @@ App = {
     var adoptionInstance;
 
     App.contracts.Adoption.deployed().then(function(instance) {
-      adoptionInstance = instance;
+      App.adoptionInstance = instance;
 
-      return adoptionInstance.getAdopters.call();
+      return App.adoptionInstance.getAdopters.call();
     }).then(function(adopters) {
 		
-		var account;
-		web3.eth.getAccounts(function(error, accounts) {
-			if (error) {
-				console.log(error);
-			}
-			var account = accounts[0];
-			  for (i = 0; i < adopters.length; i++) {
-				if (adopters[i] != '0x0000000000000000000000000000000000000000') {
-					if (adopters[i] == account){
-						$('.panel-pet').eq(i).find('.btn-return').text('Return').attr('disabled', false);
-						$('.panel-pet').eq(i).find('.btn-adopt').text('Adopted').attr('disabled', true);
-					} else {
-						$('.panel-pet').eq(i).find('.btn-return').text('-').attr('disabled', true);
-						$('.panel-pet').eq(i).find('.btn-adopt').text('Adopted').attr('disabled', true);
-					}
+		for(i=0;i<adopters.length;i++){
+			if (adopters[i] != '0x0000000000000000000000000000000000000000') {
+				if (adopters[i] == App.accounts[0]){
+					$('.panel-pet').eq(i).find('.btn-return').text('Return').attr('disabled', false);
+					$('.panel-pet').eq(i).find('.btn-adopt').text('Adopted').attr('disabled', true);
 				} else {
 					$('.panel-pet').eq(i).find('.btn-return').text('-').attr('disabled', true);
+					$('.panel-pet').eq(i).find('.btn-adopt').text('Adopted').attr('disabled', true);
 				}
-			  }
-			  
-		});
+			} else {
+				$('.panel-pet').eq(i).find('.btn-return').text('-').attr('disabled', true);
+			}
+		}
+		
+		
+		
     }).catch(function(err) {
       console.log(err.message);
     });
@@ -122,28 +124,16 @@ App = {
 	
 	console.log("petID:"+petId);
 		
-	var adoptionInstance;
-		
-	web3.eth.getAccounts(function(error, accounts) {
-		if (error) {
-			console.log(error);
-		}
+	App.contracts.Adoption.deployed().then(function(instance) {
+        adoptionInstance = instance;
 
-		var account = accounts[0];
-		console.log("account:"+account);
-
-		App.contracts.Adoption.deployed().then(function(instance) {
-			adoptionInstance = instance;
-
-			// Execute adopt as a transaction by sending account
-			return adoptionInstance.returnPet(petId, {from: account});
-			}).then(function(result) {
-				return App.markAdopted();
-			}).catch(function(err) {
-				console.log(err.message);
-		});
-
-	});
+        // Execute adopt as a transaction by sending account
+        return adoptionInstance.returnPet(petId, {from: App.accounts[0]});
+      }).then(function(result) {
+        return App.markAdopted();
+      }).catch(function(err) {
+        console.log(err.message);
+	  });
 	
   },
 
@@ -154,9 +144,6 @@ App = {
     var petId = parseInt($(event.target).data('id'));
     console.log("petId:"+petId);
 
-    /*
-     * Replace me...
-     */
     var adoptionInstance;
 
     web3.eth.getAccounts(function(error, accounts) {
