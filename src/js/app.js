@@ -125,10 +125,9 @@ App = {
 	console.log("petID:"+petId);
 		
 	App.contracts.Adoption.deployed().then(function(instance) {
-        adoptionInstance = instance;
 
         // Execute adopt as a transaction by sending account
-        return adoptionInstance.returnPet(petId, {from: App.accounts[0]});
+        return App.adoptionInstance.returnPet(petId, {from: App.accounts[0]});
       }).then(function(result) {
         return App.markAdopted();
       }).catch(function(err) {
@@ -144,26 +143,16 @@ App = {
     var petId = parseInt($(event.target).data('id'));
     console.log("petId:"+petId);
 
-    var adoptionInstance;
-
-    web3.eth.getAccounts(function(error, accounts) {
-      if (error) {
-        console.log(error);
-      }
-
-      var account = accounts[0];
-
-      App.contracts.Adoption.deployed().then(function(instance) {
-        adoptionInstance = instance;
+    App.contracts.Adoption.deployed().then(function(instance) {
 
         // Execute adopt as a transaction by sending account
-        return adoptionInstance.adopt(petId, {from: account});
-      }).then(function(result) {
-        return App.markAdopted();
-      }).catch(function(err) {
-        console.log(err.message);
-      });
-    });
+        return App.adoptionInstance.adopt(petId, {from: account[0]});
+		}).then(function(result) {
+			return App.markAdopted();
+		}).catch(function(err) {
+			console.log(err.message);
+	});
+    
   }
 
 };
